@@ -134,15 +134,14 @@ def main():
 
     # Grid Search
     # Define ranges for p, q, and d
-    p_values = [1,2,3,4,5,6]
-    d_values = [0,1,2]
-    q_values = [1,2,3,4,5,6]
+    p_values = [1,2]
+    d_values = [0,1]
+    q_values = [1,2]
 
     best_rmse, best_p, best_d, best_q = np.inf, None, None, None
     history = [x for x in train]
     # make predictions
     predictions = list()
-    # Perform grid search
     for p in p_values:
         for d in d_values:
             for q in q_values:
@@ -171,6 +170,33 @@ def main():
     print(f"Best d: {best_d}")
     print(f"Best q: {best_q}")
 
+    # Final Forecast
+    history = [x for x in train]
+    predictions = list()
+    #test.reset_index()
+    for t in range(len(test)):
+        try:
+            model = ARIMA(history, order=(4,1,2))
+            model_fit = model.fit()
+            output = model_fit.forecast()
+            yhat = output[0]
+            predictions.append(yhat)
+            obs = test[t]
+            history.append(obs)
+        except (ValueError, LinAlgError):
+            pass
+        print('predicted=%f, expected=%f' % (yhat, obs))
+    error = mean_squared_error(test, predictions)
+    rmse = mean_squared_error(test, predictions)**0.5
+    print('Test MSE: %.3f' % rmse)
+
+
+    from math import sqrt
+    rms = sqrt(mean_squared_error(test, predictions))
+
+    pyplot.plot(test, color = 'blue', label='test')   
+    pyplot.plot(predictions, color='red', label='pred')
+    pyplot.show()
 
 if __name__ == "__main__":
     main()
