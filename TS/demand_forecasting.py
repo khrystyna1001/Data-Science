@@ -91,7 +91,7 @@ def main():
     volatility = weekly_data['units_sold_pct_change'].std()
     print(volatility)
 
-        # Calculate the 4-week and 52-week moving averages
+    # Calculate the 4-week and 52-week moving averages
     weekly_data['4_week_MA'] = weekly_data['units_sold'].rolling(window=4).mean()
     weekly_data['52_week_MA'] = weekly_data['units_sold'].rolling(window=52).mean()
 
