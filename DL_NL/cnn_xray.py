@@ -208,7 +208,7 @@ def main():
     # print test accuracy
     print('Test accuracy:', test_acc)
 
-
+    # Using Pre Trained Model
     from tensorflow.keras.applications.vgg16 import VGG16
     from tensorflow.keras.layers import Dense, Flatten
     from tensorflow.keras.models import Model
