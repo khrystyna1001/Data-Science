@@ -152,20 +152,25 @@ def main():
         return new_array.reshape(-1,img_size,img_size,1)
 
     image = r'./chest_xray/test/NORMAL/IM-0059-0001.jpeg'
-    prediction=model.predict([prepare(image)/255.0])
-    print(prediction)
-    print(round(prediction[0][0]))
-    print(CATEGORIES[int(round(prediction[0][0]))])
+    prediction1=model.predict([prepare(image)/255.0])
+    print(prediction1)
+    print(round(prediction1[0][0]))
+    print(CATEGORIES[int(round(prediction1[0][0]))])
 
-    image2 = r'./chest_xray/test/PNEUMONIA/person1_virus_6.jpeg'
-    prediction=model.predict([prepare(image2)/255.0])
-    print(prediction)
-    print(round(prediction[0][0]))
-    print(CATEGORIES[int(round(prediction[0][0]))])
+    image2 = r'./chest_xray/test/PNEUMONIA/person1_virus_7.jpeg'
+    prediction2=model.predict([prepare(image2)/255.0])
+    print(prediction2)
+    print(round(prediction2[0][0]))
+    print(CATEGORIES[int(round(prediction2[0][0]))])
 
     img=mpimg.imread(image)
     imgplot=plt.imshow(img)
-    plt.title(CATEGORIES[int(prediction[0][0])])
+    plt.title(CATEGORIES[int(prediction1[0][0])])
+    plt.show()
+
+    img2=mpimg.imread(image2)
+    imgplot2=plt.imshow(img2)
+    plt.title(CATEGORIES[int(prediction2[0][0])])
     plt.show()
     
     from keras.models import load_model
@@ -198,8 +203,7 @@ def main():
     X_test = X_test / 255.0
 
     # calculate test accuracy
-    test_generator = test_datagen.flow_from_directory(test_dir, target_size=(img_size, img_size), batch_size=32, class_mode='binary', shuffle=False)
-    test_loss, test_acc = model.evaluate(test_generator)
+    test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
 
     # print test accuracy
     print('Test accuracy:', test_acc)
