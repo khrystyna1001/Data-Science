@@ -261,12 +261,5 @@ def main():
     # model summary
     print(model.summary())
 
-    # evaluate the model on test data
-    test_dir = './chest_xray/test'
-    test_datagen = ImageDataGenerator(rescale=1./255)
-    test_generator = test_datagen.flow_from_directory(test_dir, target_size=(img_size, img_size), batch_size=32, class_mode='binary', shuffle=False)
-    test_loss, test_acc = model.evaluate(test_generator)
-    print('Test accuracy:', test_acc)
-
 if __name__ == "__main__":
     main()
