@@ -11,7 +11,7 @@ import os
 load_dotenv()
 
 def main():
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_API_KEY = "KEY"
 
     llm = OpenAI(openai_api_key=OPENAI_API_KEY)
     llm.invoke("Explain EDA")
