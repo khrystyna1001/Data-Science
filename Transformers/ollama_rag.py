@@ -32,6 +32,7 @@ def main():
 
     qa = ConversationalRetrievalChain.from_llm(llm=model, retriever=db.as_retriever(), condense_question_prompt=CONDENSE_QUESTION_PROMPT, verbose=False)
 
+    # generate response
     chat_history = []
     query = "What is a RAG-sequence model?"
     result = qa({"question": query, "chat_history": chat_history})
