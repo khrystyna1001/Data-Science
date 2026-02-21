@@ -11,7 +11,6 @@ def main():
 
     def get_conversion_rate(base_currency: str, target_currency: str) -> float:
         """Fetches the current exchange rate from the API."""
-        API_KEY = os.getenv('EXCHANGE_RATE_API_KEY')
         endpoint = f'https://v6.exchangerate-api.com/v6/{API_KEY}/pair/{base_currency}/{target_currency}'
         response = requests.get(endpoint)
         return response.json().get('conversion_rate', 0.0)
