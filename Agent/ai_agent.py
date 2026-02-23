@@ -1,10 +1,7 @@
-import os
 from langchain import hub
 from langchain.agents import create_react_agent, AgentExecutor
-from langchain_core.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_community.llms import Ollama
-import requests
 
 def main():
     llm = Ollama(model="deepseek-r1")
