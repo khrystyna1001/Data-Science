@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 def main():
-    dataset_url = "ML_DL_Deployment/breast_cancer.csv"
+    dataset_url = "ML_DL_Deployment/bc_pred/breast_cancer.csv"
     df = pd.read_csv(dataset_url)
     df['diagnosis'] = df['diagnosis'].map({'M': 1, 'B': 0})
     features = ['radius_mean', 'texture_mean', 'perimeter_mean', 'smoothness_mean', 'compactness_mean']
