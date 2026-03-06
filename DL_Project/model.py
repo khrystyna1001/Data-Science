@@ -15,7 +15,7 @@ from tensorflow.keras.optimizers import Adam
 tf.keras.backend.set_image_data_format('channels_last')
 
 def main():
-    DATASET_PATH = "Data/"
+    DATASET_PATH = "DL_Project/Data/"
     IMG_SIZE = (224, 224)
     BATCH_SIZE = 32
     SEED = 42
@@ -27,7 +27,7 @@ def main():
         image_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
         seed=SEED,
-        shuffle=False
+        shuffle=True
     )
     
     validation_dataset = tf.keras.utils.image_dataset_from_directory(
@@ -37,7 +37,7 @@ def main():
         image_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
         seed=SEED,
-        shuffle=False
+        shuffle=True
     )
 
     class_names = train_dataset.class_names
@@ -51,8 +51,12 @@ def main():
     }
     print("Class weights:", class_weights)
 
+    # Performance optimization
+    AUTOTUNE = tf.data.AUTOTUNE
     train_dataset = train_dataset.map(lambda x, y: (preprocess_input(x), y))
+    train_dataset = train_dataset.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     validation_dataset = validation_dataset.map(lambda x, y: (preprocess_input(x), y))
+    validation_dataset = validation_dataset.cache().prefetch(buffer_size=AUTOTUNE)
 
     # Model (EfficientNet)
     base_model = tf.keras.applications.EfficientNetB0(
@@ -79,7 +83,9 @@ def main():
     x = data_augmentation(inputs)
     x = base_model(x, training=False)
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dense(128, activation='relu')(x)
+    x = tf.keras.layers.Dropout(0.3)(x)  # Add dropout
+    x = tf.keras.layers.Dense(256, activation='relu')(x)  # Larger dense layer
+    x = tf.keras.layers.Dropout(0.2)(x)  # More dropout
     outputs = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
 
     model = tf.keras.Model(inputs, outputs)
@@ -90,11 +96,20 @@ def main():
         metrics=['accuracy']
     )
 
+    # Add learning rate scheduling
+    lr_schedule = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor='val_loss', factor=0.5, patience=3, min_lr=1e-7
+    )
+
     history = model.fit(
         train_dataset,
-        epochs=15,
+        epochs=30,  # More epochs
         validation_data=validation_dataset,
-        class_weight=class_weights
+        class_weight=class_weights,
+        callbacks=[
+            EarlyStopping(monitor='val_accuracy', patience=8, restore_best_weights=True),
+            lr_schedule
+        ]
     )
 
     acc = history.history['accuracy']
@@ -108,78 +123,13 @@ def main():
     plt.legend()
     plt.show()
 
-    if not os.path.exists("saved_models"):
-        os.makedirs("saved_models")
-    model.save("saved_models/efficientnet_classifier.keras")
-
-    # Hyper Parameter Optimization
-    AUTOTUNE = tf.data.AUTOTUNE
-    train_dataset = train_dataset.cache().prefetch(buffer_size=AUTOTUNE)
-    validation_dataset = validation_dataset.cache().prefetch(buffer_size=AUTOTUNE)
-
-    def build_model(hp):
-        base_model = EfficientNetB0(
-            input_shape=(224, 224, 3),
-            include_top=False,
-            weights=None
-        )
-        base_model.trainable = False
-
-        model = Sequential([
-            RandomFlip("horizontal"),
-            RandomRotation(hp.Float("rotation_factor", min_value=0.05, max_value=0.3, step=0.05)),
-            RandomZoom(hp.Float("zoom_factor", min_value=0.05, max_value=0.3, step=0.05)),
-            base_model,
-            GlobalAveragePooling2D(),
-            Dropout(hp.Float("dropout_rate", min_value=0.0, max_value=0.5, step=0.1)),
-            Dense(
-                hp.Int("dense_units", min_value=64, max_value=512, step=64),
-                activation='relu'
-            ),
-            Dense(num_classes, activation='softmax')
-        ])
-
-        model.compile(
-            optimizer=Adam(hp.Float("learning_rate", min_value=1e-4, max_value=1e-2, sampling="log")),
-            loss='sparse_categorical_crossentropy',
-            metrics=['accuracy']
-        )
-        return model
-
-    # Setup Random Search Tuner
-    tuner = kt.RandomSearch(
-        build_model,
-        objective='val_accuracy',
-        max_trials=20,
-        executions_per_trial=1,
-        directory='kt_dir',
-        project_name='efficientnet_tune',
-        overwrite=True
-    )
-
-    # Optional: Early stopping
-    early_stopping = EarlyStopping(monitor='val_accuracy', patience=5, restore_best_weights=True)
-
-    # Run the search
-    tuner.search(
-        train_dataset,
-        validation_data=validation_dataset,
-        epochs=20,
-        callbacks=[early_stopping],
-        class_weight=class_weights
-    )
-
-    # Results
-    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-    print("Best hyperparameters:")
-    print(best_hps.values)
-
-    best_model = tuner.get_best_models(num_models=1)[0]
-
-    # Evaluate on validation
-    val_loss, val_acc = best_model.evaluate(validation_dataset)
-    print(f"Best validation accuracy: {val_acc:.4f}")
-    best_model.save('saved_models/efficientnet_finetuned.keras')
+    if not os.path.exists("DL_Project/saved_models"):
+        os.makedirs("DL_Project/saved_models")
+    model.save("DL_Project/saved_models/efficientnet_classifier.keras")
+    
+    print(f"Final model saved. Training completed.")
+    print(f"Final training accuracy: {history.history['accuracy'][-1]:.4f}")
+    print(f"Final validation accuracy: {history.history['val_accuracy'][-1]:.4f}")
 
 if __name__ == "__main__":
     main()
