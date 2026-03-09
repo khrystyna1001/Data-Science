@@ -2,30 +2,25 @@ import os, re
 from flask import Flask, render_template, request, redirect
 from PyPDF2 import PdfReader
 
-# --- UPDATED IMPORTS ---
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings  # Local Embeddings
-from langchain_community.llms import Ollama                 # Local Ollama LLM
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.llms import Ollama                
 from langchain.chains import ConversationalRetrievalChain
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.memory import ConversationBufferMemory
 
-# Note: We no longer need the 'openai' or 'langchain_openai' imports
 
-# --- CONFIGURATION ---
 DATA_DIR = "__data__"
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
 app = Flask(__name__)
 
-# Global variables (initialized as None)
 vectorstore = None
 conversation_chain = None
 chat_history = []
 rubric_text = ""
 
-# --- UPDATED LOGIC FUNCTIONS ---
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -45,14 +40,11 @@ def get_text_chunks(text):
     return text_splitter.split_text(text)
 
 def get_vectorstore(text_chunks):
-    # SWAP: OpenAIEmbeddings -> HuggingFaceEmbeddings
-    # "all-MiniLM-L6-v2" is a fast, lightweight local model
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
 def get_conversation_chain(vectorstore):
-    # SWAP: ChatOpenAI -> ChatOllama
     llm = Ollama(model="deepseek-r1", temperature=0.4)
     
     memory = ConversationBufferMemory(
@@ -67,17 +59,14 @@ def get_conversation_chain(vectorstore):
     )
 
 def _grade_essay(essay):
-    # Using Ollama directly for grading function
     llm = Ollama(model="deepseek-r1", temperature=0.4)
     
-    system_prompt = f"You are a Chinese bot, grade the essay based on this rubric: {rubric_text}. Respond in Chinese only."
+    system_prompt = f"You are a Chinese bot, grade the essay based on this rubric: {rubric_text}. Respond in English only."
     full_prompt = f"{system_prompt}\n\nESSAY: {essay}"
     
-    # Simple invocation for grading
     response = llm.invoke(full_prompt)
     data = response.content
     
-    # Convert newlines for HTML display
     return re.sub(r'\n', '<br>', data)
 
 
