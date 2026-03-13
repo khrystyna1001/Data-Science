@@ -1,19 +1,19 @@
 from langchain_community.document_loaders import DirectoryLoader , PyPDFLoader
 from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.prompts import PromptTemplate
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from prompts import qa_system_prompt, contextualize_q_system_prompt
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.chains import RetrievalQAWithSourcesChain
+from langchain_classic.chains import RetrievalQAWithSourcesChain
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import RetrievalQA
+from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
+from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain_classic.chains import RetrievalQA
 from dotenv import load_dotenv
 load_dotenv()
 import os
